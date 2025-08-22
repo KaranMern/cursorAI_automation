@@ -1,0 +1,118 @@
+---
+alwaysApply: true
+---
+# Rule: Custom Flutter Folder & File Structure
+# Purpose: Always use this directory layout and file conventions for my Flutter projects.
+
+# Directory Layout
+android/
+  app/
+    src/
+      sit/                     # SIT flavor configuration
+      uat/                     # UAT flavor configuration
+      prod/                    # Production flavor configuration
+
+lib/
+  config/
+    firebase/
+      localnotification.dart # Local notification setup
+      pushnotification.dart  # Push notification setup
+    responsive/
+      responseconfig.dart    # Responsive configuration file
+  theme/
+    lighttheme.dart          # Light theme configuration
+    darktheme.dart           # Dark theme configuration
+  core/
+    base/                    # Base classes or utilities
+    Constants/
+      apiURLs.dart           # API URLs and endpoints
+      assetsURLs.dart        # Asset paths (e.g., images, icons)
+      appcolors.dart         # App color definitions
+      textstyles.dart        # Text style definitions
+    logger/
+      logger.dart            # Logging utilities (disabled in production via Firebase)
+    network/
+      alice.dart             # Network inspection (Alice)
+      autoretry.dart         # Auto-retry logic for API calls
+      customapicall.dart     # Custom API call utilities
+      internetconnectivity_cubit.dart # Cubit for checking internet status
+    utils/
+      commonfunction.dart    # Common helper functions
+      datetime_picker.dart   # Date/time picker utilities
+      permission_helper.dart # Permission handling utilities
+      toast_helper.dart      # Toast/snackbar utilities
+      validation_helper.dart # Form/input validation utilities
+  features/
+    <ModuleName>/
+      data/
+        cubit/
+          <module>_cubit.dart
+          <module>_state.dart
+        models/
+        repositories/
+        services/
+      presentation/
+        screens/
+        components/
+  instance/
+    applifecycle/            # App lifecycle management
+    locator.dart             # Dependency injection (GetIt setup)
+
+# Rules for Cursor
+1. General
+   - Adhere to the folder structure above.
+   - Create missing folders automatically.
+   - Use snake_case for files, PascalCase for classes.
+   - Do not generate files outside this structure unless requested.
+
+2. Flavor Configuration
+   - Place flavor configs in android/app/src/{sit,uat,prod}/.
+
+3. Cubit Creation
+   - For “create a cubit <ModuleName>”, generate:
+     - lib/features/<ModuleName>/data/cubit/<module>_cubit.dart
+     - lib/features/<ModuleName>/data/cubit/<module>_state.dart
+   - Use bloc package: import 'package:bloc/bloc.dart'.
+   - State file: Include data class with nullable fields, factory constructor for JSON/map parsing if model-based.
+   - Cubit file: Extend Cubit<<ModuleName>State>, initialize default state, include async data functions, wrap try/catch with error logging via lib/core/logger/logger.dart (disabled in production).
+   - Import lib/core/utils/commonfunction.dart if needed.
+
+4. Constants
+   - API links: lib/core/Constants/apiURLs.dart.
+   - Asset paths: lib/core/Constants/assetsURLs.dart in class AssetConstants { static const String example = "assets/images/example.png"; }.
+   - Colors: lib/core/Constants/appcolors.dart in class AppColors { static const Color primary = Color(0xFF123456); }.
+   - Text styles: lib/core/Constants/textstyles.dart in class TextStyles { static const TextStyle heading = TextStyle(...); }.
+
+5. Presentation
+   - Reusable widgets: lib/features/<ModuleName>/presentation/components/.
+   - Screens: lib/features/<ModuleName>/presentation/screens/.
+
+6. Firebase and Notifications
+   - Notification configs: lib/config/firebase/{localnotification,pushnotification}.dart.
+   - Logger: lib/core/logger/logger.dart, disabled in production via Firebase.
+
+7. Responsive Design
+   - Responsive configs: lib/config/responsive/responseconfig.dart.
+
+8. Themes
+   - Theme configs: lib/theme/{lighttheme,darktheme}.dart with ThemeData.
+
+9. Network and Utilities
+   - Network utilities: lib/core/network/{alice,autoretry,customapicall,internetconnectivity_cubit}.dart.
+   - Utilities: lib/core/utils/{commonfunction,datetime_picker,permission_helper,toast_helper,validation_helper}.dart.
+
+10. Dependency Injection and Lifecycle
+    - DI setup: lib/instance/locator.dart (GetIt).
+    - Lifecycle: lib/instance/applifecycle/.
+
+11. Feature Modules
+    - New feature structure: lib/features/<ModuleName>/{data/{cubit,models,repositories,services},presentation/{screens,components}}.
+
+12. Logger
+    - Use lib/core/logger/logger.dart, disabled in production.
+    - Import lib/core/utils/commonfunction.dart for error logging if needed.
+
+# Additional Notes
+- Check for existing files to avoid duplication.
+- Use relative imports (e.g., import 'package:myapp/core/Constants/apiURLs.dart';).
+- Ask for clarification if feature/file is ambiguous.

@@ -1,0 +1,241 @@
+---
+alwaysApply: true
+---
+
+# Rule: Custom Flutter State Management with Bloc Cubit
+# Purpose: Define conventions for state management using bloc Cubits, aligned with project folder structure.
+
+
+
+# Relevant Folder Structure
+# - lib/features/<ModuleName>/data/cubit/<module>_cubit.dart
+# - lib/features/<ModuleName>/data/cubit/<module>_state.dart
+# - lib/core/logger/logger.dart (error logging, disabled in production via Firebase)
+# - lib/core/utils/commonfunction.dart (utilities)
+# - lib/core/Constants/ (constants like apiURLs, appcolors)
+
+# State Management Rules
+
+1. General
+   - Use `bloc` package for Cubit-based state management.
+   - Place Cubit/State files in: lib/features/<ModuleName>/data/cubit/
+   - Files: snake_case (e.g., expense_category_cubit.dart)
+   - Classes: PascalCase (e.g., ExpenseCategoryCubit)
+   - Import: package:bloc/bloc.dart
+   - States: Immutable, with nullable fields
+   - Cubits: Handle async operations, emit states
+   - Errors: Use try/catch, log via lib/core/logger/logger.dart (disabled in production)
+   - Use relative imports (e.g., import 'package:myapp/core/logger/logger.dart')
+
+2. State File (<module>_state.dart)
+   - Define primary state class (e.g., ExpenseClass) with nullable fields (e.g., bool? isLoading, List<Expense>? expenseList)
+   - Include related models (e.g., ExpenseWithCategory) in same file if tightly coupled
+   - Models must have:
+     - Nullable fields for optional data
+     - fromMap factory for JSON/map parsing
+     - toMap for serialization
+   - Support complex types (e.g., List<Map<String, dynamic>>, DateTime)
+   - Include isLoading for UI loading states
+   - Include chart data fields if needed (e.g., List<OrdinalData>? for d_chart)
+   - Example:
+     ```dart
+     class <ModuleName>State {
+       bool? isLoading;
+       List<<ModelName>>? dataList;
+       <ModuleName>State({this.isLoading, this.dataList});
+     }
+     class <ModelName> {
+       final int? id;
+       <ModelName>({this.id});
+       factory <ModelName>.fromMap(Map<String, dynamic> map) { ... }
+       Map<String, dynamic> toMap() { ... }
+     }
+     ```
+
+3. Cubit File (<module>_cubit.dart)
+   - Extend Cubit<<ModuleName>State>
+   - Initialize with default state: super(<ModuleName>State())
+   - Include async methods for data fetching/processing
+   - Emit isLoading: true at start, isLoading: false on success
+   - Use try/catch, log errors via lib/core/logger/logger.dart
+   - Import:
+     - package:bloc/bloc.dart
+     - lib/core/utils/commonfunction.dart (if needed)
+     - Services/CRUD from lib/features/<ModuleName>/data/services/ or lib/base/LocalDB/Crud/
+   - Example:
+     ```dart
+     import 'package:bloc/bloc.dart';
+     import 'package:myapp/core/logger/logger.dart';
+     import '<path_to_services>';
+
+     class <ModuleName>Cubit extends Cubit<<ModuleName>State> {
+       <ModuleName>Cubit() : super(<ModuleName>State());
+       Future<void> fetchData(/* params */) async {
+         try {
+           emit(<ModuleName>State(isLoading: true));
+           final data = await <Service>.fetchData(/* args */);
+           emit(<ModuleName>State(isLoading: false, dataList: data));
+         } catch (e, stack) {
+           await Logger.logError(e, stack);
+           rethrow;
+         }
+       }
+     }
+     ```
+
+4. Error Handling
+   - Wrap async operations in try/catch
+   - Log errors via lib/core/logger/logger.dart
+   - Disable logging in production (Firebase config)
+   - Optionally rethrow errors for UI handling
+
+5. Data Fetching
+   - Support parameters (e.g., date ranges, user IDs)
+   - Use services/CRUD from lib/features/<ModuleName>/data/services/ or lib/base/LocalDB/Crud/
+   - Process data for UI (e.g., chart data, summaries)
+
+6. State Emission
+   - Emit new state for each change (loading, success, error)
+   - Include isLoading for UI
+   - Use new state instances, avoid mutation
+
+7. Models
+   - Define in state file if coupled, else in lib/features/<ModuleName>/data/models/
+   - Include nullable fields, fromMap, toMap
+
+8. Charts
+   - Include chart fields (e.g., List<OrdinalData>?) in state
+   - Cubit converts data to chart format (e.g., convertExpensesToOrdinalData)
+
+9. Dependencies
+   - Add to pubspec.yaml: bloc, flutter_bloc, sqflite, d_chart
+   - Import as needed (e.g., package:d_chart/commons/data_model/data_model.dart)
+
+10. Cursor Command
+    - "create a cubit <ModuleName>" generates:
+      - lib/features/<ModuleName>/data/cubit/<module>_cubit.dart
+      - lib/features/<ModuleName>/data/cubit/<module>_state.dart
+    - Follow above conventions
+
+11. Notes
+    - Check for existing files to avoid duplication
+    - Clarify ambiguous requirements
+    - Support flavors (android/app/src/{sit,uat,prod})# Rule: Custom Flutter State Management with Bloc Cubit
+# Purpose: Define conventions for state management using bloc Cubits, aligned with project folder structure.
+
+
+
+# Relevant Folder Structure
+# - lib/features/<ModuleName>/data/cubit/<module>_cubit.dart
+# - lib/features/<ModuleName>/data/cubit/<module>_state.dart
+# - lib/core/logger/logger.dart (error logging, disabled in production via Firebase)
+# - lib/core/utils/commonfunction.dart (utilities)
+# - lib/core/Constants/ (constants like apiURLs, appcolors)
+
+# State Management Rules
+
+1. General
+   - Use `bloc` package for Cubit-based state management.
+   - Place Cubit/State files in: lib/features/<ModuleName>/data/cubit/
+   - Files: snake_case (e.g., expense_category_cubit.dart)
+   - Classes: PascalCase (e.g., ExpenseCategoryCubit)
+   - Import: package:bloc/bloc.dart
+   - States: Immutable, with nullable fields
+   - Cubits: Handle async operations, emit states
+   - Errors: Use try/catch, log via lib/core/logger/logger.dart (disabled in production)
+   - Use relative imports (e.g., import 'package:myapp/core/logger/logger.dart')
+
+2. State File (<module>_state.dart)
+   - Define primary state class (e.g., ExpenseClass) with nullable fields (e.g., bool? isLoading, List<Expense>? expenseList)
+   - Include related models (e.g., ExpenseWithCategory) in same file if tightly coupled
+   - Models must have:
+     - Nullable fields for optional data
+     - fromMap factory for JSON/map parsing
+     - toMap for serialization
+   - Support complex types (e.g., List<Map<String, dynamic>>, DateTime)
+   - Include isLoading for UI loading states
+   - Include chart data fields if needed (e.g., List<OrdinalData>? for d_chart)
+   - Example:
+     ```dart
+     class <ModuleName>State {
+       bool? isLoading;
+       List<<ModelName>>? dataList;
+       <ModuleName>State({this.isLoading, this.dataList});
+     }
+     class <ModelName> {
+       final int? id;
+       <ModelName>({this.id});
+       factory <ModelName>.fromMap(Map<String, dynamic> map) { ... }
+       Map<String, dynamic> toMap() { ... }
+     }
+     ```
+
+3. Cubit File (<module>_cubit.dart)
+   - Extend Cubit<<ModuleName>State>
+   - Initialize with default state: super(<ModuleName>State())
+   - Include async methods for data fetching/processing
+   - Emit isLoading: true at start, isLoading: false on success
+   - Use try/catch, log errors via lib/core/logger/logger.dart
+   - Import:
+     - package:bloc/bloc.dart
+     - lib/core/utils/commonfunction.dart (if needed)
+     - Services/CRUD from lib/features/<ModuleName>/data/services/ or lib/base/LocalDB/Crud/
+   - Example:
+     ```dart
+     import 'package:bloc/bloc.dart';
+     import 'package:myapp/core/logger/logger.dart';
+     import '<path_to_services>';
+
+     class <ModuleName>Cubit extends Cubit<<ModuleName>State> {
+       <ModuleName>Cubit() : super(<ModuleName>State());
+       Future<void> fetchData(/* params */) async {
+         try {
+           emit(<ModuleName>State(isLoading: true));
+           final data = await <Service>.fetchData(/* args */);
+           emit(<ModuleName>State(isLoading: false, dataList: data));
+         } catch (e, stack) {
+           await Logger.logError(e, stack);
+           rethrow;
+         }
+       }
+     }
+     ```
+
+4. Error Handling
+   - Wrap async operations in try/catch
+   - Log errors via lib/core/logger/logger.dart
+   - Disable logging in production (Firebase config)
+   - Optionally rethrow errors for UI handling
+
+5. Data Fetching
+   - Support parameters (e.g., date ranges, user IDs)
+   - Use services/CRUD from lib/features/<ModuleName>/data/services/ or lib/base/LocalDB/Crud/
+   - Process data for UI (e.g., chart data, summaries)
+
+6. State Emission
+   - Emit new state for each change (loading, success, error)
+   - Include isLoading for UI
+   - Use new state instances, avoid mutation
+
+7. Models
+   - Define in state file if coupled, else in lib/features/<ModuleName>/data/models/
+   - Include nullable fields, fromMap, toMap
+
+8. Charts
+   - Include chart fields (e.g., List<OrdinalData>?) in state
+   - Cubit converts data to chart format (e.g., convertExpensesToOrdinalData)
+
+9. Dependencies
+   - Add to pubspec.yaml: bloc, flutter_bloc, sqflite, d_chart
+   - Import as needed (e.g., package:d_chart/commons/data_model/data_model.dart)
+
+10. Cursor Command
+    - "create a cubit <ModuleName>" generates:
+      - lib/features/<ModuleName>/data/cubit/<module>_cubit.dart
+      - lib/features/<ModuleName>/data/cubit/<module>_state.dart
+    - Follow above conventions
+
+11. Notes
+    - Check for existing files to avoid duplication
+    - Clarify ambiguous requirements
+    - Support flavors (android/app/src/{sit,uat,prod})

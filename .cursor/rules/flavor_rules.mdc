@@ -1,0 +1,228 @@
+---
+alwaysApply: false
+---
+# Relevant Folder Structure
+# - android/app/src/{sit,uat,prod}/ (flavor_specific configs, e.g., google-services.json)
+# - ios/flavors/{sit,uat,prod}/ (flavor_specific configs, e.g., GoogleService-Info.plist)
+# - lib/Flavor/ (flavor_config.dart, firebase_options_sit.dart, firebase_options_uat.dart, firebase_options_prod.dart)
+# - lib/main.dart (main app entry point with Firebase initialization)
+# - lib/main_{sit,uat,prod}.dart (flavor-specific entry points)
+# - android/app/build.gradle (flavor definitions)
+# - setup_firebase.sh (script for Firebase project creation and configuration)
+
+# Flavor and Firebase Rules
+
+1. General
+   - Support three flavors: sit, uat, prod.
+   - Place flavor-specific configurations in: android/app/src/{sit,uat,prod}/
+   - Place Firebase configurations in: lib/Flavor/ (e.g., firebase_options_sit.dart)
+   - Place platform-specific Firebase configs:
+     - Android: android/app/src/{sit,uat,prod}/google-services.json
+     - iOS: ios/flavors/{sit,uat,prod}/GoogleService-Info.plist
+   - Use snake_case for file names (e.g., flavor_config.dart, firebase_options_sit.dart).
+   - Use PascalCase for class/enum names (e.g., FlavorConfig, Flavor).
+   - Use relative imports with package prefix (e.g., import 'package:myapp/Flavor/flavor_config.dart').
+   - Check for existing files to avoid duplication.
+   - Clarify ambiguous requirements before generating code.
+   - Keep firebase_options_<flavor>.dart files in version control.
+
+2. Flavor Enum
+   - Define enum named `Flavor` in lib/Flavor/flavor_config.dart.
+   - Enum values: sit, uat, prod (lowercase).
+   - Example:
+     ```dart
+     enum Flavor {
+       sit,
+       uat,
+       prod,
+     }
+     ```
+
+3. Flavor Configuration Class
+   - Define class named `FlavorConfig` in lib/Flavor/flavor_config.dart.
+   - Include static field `appFlavor` of type `Flavor?` (nullable).
+   - Include static getter `title` returning app name:
+     - sit: 'POC SIT'
+     - uat: 'POC UAT'
+     - prod: 'POC'
+     - default: 'POC'
+   - Include static getter `isDevelopment` returning boolean:
+     - sit: true
+     - uat: true
+     - prod: false
+     - default: false
+   - Include static getter `firebaseOptions` for Firebase initialization:
+     - Import flavor-specific Firebase options with aliases (e.g., import 'firebase_options_sit.dart' as sit).
+     - Return flavor-specific `FirebaseOptions` using switch statement.
+   - Example:
+     ```dart
+     import 'package:firebase_core/firebase_core.dart';
+     import 'package:myapp/Flavor/firebase_options_sit.dart' as sit;
+     import 'package:myapp/Flavor/firebase_options_uat.dart' as uat;
+     import 'package:myapp/Flavor/firebase_options_prod.dart' as prod;
+
+     class FlavorConfig {
+       static Flavor? appFlavor;
+       static String get title {
+         switch (appFlavor) {
+           case Flavor.sit:
+             return 'POC SIT';
+           case Flavor.uat:
+             return 'POC UAT';
+           case Flavor.prod:
+             return 'POC';
+           default:
+             return 'POC';
+         }
+       }
+       static bool get isDevelopment {
+         switch (appFlavor) {
+           case Flavor.sit:
+           case Flavor.uat:
+             return true;   // dev/testing
+           case Flavor.prod:
+             return false;  // production
+           default:
+             return false;
+         }
+       }
+       static FirebaseOptions get firebaseOptions {
+         switch (appFlavor) {
+           case Flavor.sit:
+             return sit.DefaultFirebaseOptions.currentPlatform;
+           case Flavor.uat:
+             return uat.DefaultFirebaseOptions.currentPlatform;
+           case Flavor.prod:
+             return prod.DefaultFirebaseOptions.currentPlatform;
+           default:
+             throw UnsupportedError('Invalid flavor: $appFlavor');
+         }
+       }
+     }
+     ```
+
+4. Main Entry Points
+   - Create separate main entry points for each flavor:
+     - lib/main_sit.dart
+     - lib/main_uat.dart
+     - lib/main_prod.dart
+   - Each sets `FlavorConfig.appFlavor` and calls lib/main.dart:
+     ```dart
+     import 'package:myapp/Flavor/flavor_config.dart';
+     import 'main.dart' as poc;
+
+     Future<void> main() async {
+       FlavorConfig.appFlavor = Flavor.<flavor>;
+       await poc.main();
+     }
+     ```
+   - Replace <flavor> with sit, uat, or prod.
+
+5. Main App with Firebase
+   - Initialize Firebase in lib/main.dart using `FlavorConfig.firebaseOptions`.
+   - Call `WidgetsFlutterBinding.ensureInitialized()` before Firebase initialization.
+   - Example:
+     ```dart
+     import 'package:firebase_core/firebase_core.dart';
+     import 'package:flutter/material.dart';
+     import 'package:myapp/Flavor/flavor_config.dart';
+
+     Future<void> main() async {
+       WidgetsFlutterBinding.ensureInitialized();
+       await Firebase.initializeApp(options: FlavorConfig.firebaseOptions);
+       runApp(const MyApp());
+     }
+
+     class MyApp extends StatelessWidget {
+       const MyApp({super.key});
+       @override
+       Widget build(BuildContext context) {
+         return MaterialApp(
+           title: FlavorConfig.title,
+           home: const Placeholder(),
+         );
+       }
+     }
+     ```
+
+6. Gradle Configuration
+   - Update android/app/build.gradle with flavor definitions:
+     ```groovy
+     android {
+       flavorDimensions "flavour-type"
+       productFlavors {
+         prod {
+           dimension "flavour-type"
+           applicationId "com.example.myapp"
+           resValue "string", "app_name", "POC"
+         }
+         sit {
+           dimension "flavour-type"
+           applicationId "com.example.myapp.sit"
+           resValue "string", "app_name", "POC SIT"
+         }
+         uat {
+           dimension "flavour-type"
+           applicationId "com.example.myapp.uat"
+           resValue "string", "app_name", "POC UAT"
+         }
+       }
+     }
+
+     apply plugin: 'com.google.gms.google-services'
+     ```
+
+7. Automated Firebase Project Creation and Configuration
+   - Use `setup_firebase.sh` script to automate Firebase setup.
+   - Corrected implementation ensures prod IDs are clean (no `.prod` suffix):
+     ```bash
+     if [ "$FLAVOR" = "prod" ]; then
+       ANDROID_PACKAGE="com.example.myapp"
+       IOS_BUNDLE="com.example.myapp"
+     else
+       ANDROID_PACKAGE="com.example.myapp.$FLAVOR"
+       IOS_BUNDLE="com.example.myapp.$FLAVOR"
+     fi
+     ```
+   - Projects created:
+     - myapp-sit
+     - myapp-uat
+     - myapp (prod)
+
+8. Cursor Commands
+   - "create flavor config": generate `lib/Flavor/flavor_config.dart`
+   - "create main entry for <flavor>": generate `lib/main_<flavor>.dart`
+   - "update main with firebase": update `lib/main.dart`
+   - "create firebase project for <flavor>": run `setup_firebase.sh <flavor>`
+   - "create firebase project for all flavors": run `setup_firebase.sh`
+   - "run <flavor> app":  
+     ```bash
+     flutter run --flavor <flavor> -t lib/main_<flavor>.dart
+     ```
+
+9. Dependencies
+   - Add to pubspec.yaml:
+     ```yaml
+     dependencies:
+       flutter:
+         sdk: flutter
+       firebase_core: ^3.6.0
+       firebase_auth: ^5.3.1
+       google_sign_in: ^6.2.1
+       package_info_plus: ^8.0.0
+
+     dev_dependencies:
+       flutterfire_cli: ^1.3.1
+     ```
+
+10. Notes
+    - Ensure Firebase CLI is authenticated.
+    - Keep `firebase_options_<flavor>.dart` in version control.
+    - Run flavors with:
+      ```bash
+      flutter run --flavor sit -t lib/main_sit.dart
+      flutter run --flavor uat -t lib/main_uat.dart
+      flutter run --flavor prod -t lib/main_prod.dart
+      ```
+
+---

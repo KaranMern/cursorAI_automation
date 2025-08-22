@@ -1,0 +1,135 @@
+---
+alwaysApply: true
+---
+# Rule: Custom Flutter Naming Conventions
+# Purpose: Define naming conventions for files, classes, variables, and other elements in Flutter projects, aligned with provided samples and folder structure.
+
+
+
+# Relevant Folder Structure
+# - lib/config/firebase/{localnotification,pushnotification}.dart
+# - lib/theme/{lighttheme,darktheme}.dart
+# - lib/core/{base,Constants,logger,network,utils}/
+# - lib/features/<ModuleName>/{data/{cubit,models,repositories,services},presentation/{screens,components}}
+# - lib/instance/{applifecycle,locator}.dart
+# - android/app/src/{sit,uat,prod}/
+
+# Naming Rules
+
+1. General
+   - Use consistent naming conventions across all files, classes, and variables.
+   - Ensure names are descriptive and reflect their purpose (e.g., `BalanceExpenseCardTopComponent` for a balance card widget).
+   - Use relative imports with package prefix (e.g., `import 'package:myapp/Constant/ColorConstants.dart'`).
+   - Check for existing files to avoid duplication.
+   - Clarify ambiguous names or requirements before generating code.
+
+2. File Naming
+   - Use `snake_case` for all file names (e.g., `expense_category_cubit.dart`, `balance_expense_card_top_component.dart`).
+   - Place files in appropriate directories based on purpose:
+     - Widgets: `lib/features/<ModuleName>/presentation/{screens,components}/`
+     - Cubits/States: `lib/features/<ModuleName>/data/cubit/`
+     - Models: `lib/features/<ModuleName>/data/models/` or in state file if tightly coupled
+     - Services/CRUD: `lib/features/<ModuleName>/data/services/` or `lib/base/LocalDB/Crud/`
+     - Utilities: `lib/core/utils/`
+     - Constants: `lib/core/Constants/`
+     - Logger: `lib/core/logger/`
+     - Firebase: `lib/config/firebase/`
+     - Themes: `lib/theme/`
+   - Example: Widget file `balance_expense_card_top_component.dart` in `lib/features/dashboard/presentation/components/`.
+
+3. Class Naming
+   - Use `PascalCase` for all class names (e.g., `BalanceExpenseCardTopComponent`, `RecurringsScreen`).
+   - Widget classes:
+     - Stateless widgets: End with `Component` or `Screen` (e.g., `BalanceExpenseCardTopComponent`, `RecurringsScreen`).
+     - Stateful widgets: End with `Screen` for main screens (e.g., `RecurringsScreen`).
+     - State classes for Stateful widgets: Prefix with underscore and end with `State` (e.g., `_RecurringsScreenState`).
+   - Cubit classes: End with `Cubit` (e.g., `ExpenseCategoryCubit`).
+   - State classes: Use descriptive name or end with `State` (e.g., `ExpenseClass`, `ExpenseCategoryState`).
+   - Model classes: Use descriptive names reflecting data (e.g., `ExpenseWithCategory`, `CategorySpend`).
+
+4. Variable Naming
+   - Use `camelCase` for variable names (e.g., `balanceType`, `categoryColors`, `isLoading`).
+   - Use descriptive names indicating purpose (e.g., `expenseState` for Cubit state, `categoryName` for category data).
+   - For constants or static values, use `camelCase` in constants files (e.g., `whiteColor` in `ColorConstants.dart`).
+   - Prefix private variables with underscore (e.g., `_gradientColor3`, `_RecurringsScreenState`).
+   - Use singular/plural appropriately:
+     - Singular for single values (e.g., `balance`, `expense`).
+     - Plural for collections (e.g., `expenseList`, `categoryColors`).
+   - Avoid ambiguous abbreviations; prefer clarity (e.g., `categoryMap` over `catMap`).
+
+5. Constant Naming
+   - Constants in `lib/core/Constants/` (e.g., `ColorConstants.dart`, `Constants.dart`):
+     - Use `PascalCase` for class names (e.g., `ColorConstants`, `Constants`).
+     - Use `camelCase` for constant fields (e.g., `whiteColor`, `logoTextColor` in `ColorConstants`).
+     - Use descriptive names (e.g., `KConstantColors.red` for red color, `Constants.expense` for expense string).
+   - Example:
+     ```dart
+     class ColorConstants {
+       static const Color whiteColor = Color(0xFFFFFFFF);
+       static const Color red = Color(0xFFFF0000);
+     }
+     class Constants {
+       static const String expense = 'Expense';
+       static const String income = 'Income';
+     }
+     ```
+
+6. Method Naming
+   - Use `camelCase` for method names (e.g., `buildScreenData`, `loadCategoryColors`).
+   - Use descriptive names indicating action and purpose (e.g., `FetchAllRecurrings`, `sortRecurringData`).
+   - For async methods, use `Future<void>` or appropriate return type and prefix with action (e.g., `loadCategories`, `getExpenseCategoryDateRangeFilterDate`).
+   - For Cubit methods, reflect data operation (e.g., `getExpenseCategoryDateRangeFilterDate`).
+
+7. Parameter Naming
+   - Use `camelCase` for parameters (e.g., `balanceType`, `expenseState`).
+   - Ensure parameters are descriptive (e.g., `localDB`, `auth.currentUser!.uid`).
+   - Use nullable types for optional parameters (e.g., `String? balance`, `DateTime? startDate`).
+   - Use named parameters for clarity in long method signatures (e.g., `startDate: startDate, endDate: endDate`).
+
+8. Widget-Specific Naming
+   - Widget classes: End with `Component` for reusable widgets (e.g., `TotalExpenseIncomeCardComponent`) or `Screen` for full screens (e.g., `RecurringsScreen`).
+   - Widget properties: Use `camelCase`, prefix private with underscore (e.g., `_gradientColor3`, `balanceType`).
+   - Use descriptive prefixes for context (e.g., `KConstantColors` for colors, `Constants` for strings).
+   - Follow naming in `build` methods:
+     - Local variables: `camelCase` (e.g., `categoryName`, `expenseColor`).
+     - Widget-specific variables: Reflect purpose (e.g., `symbol` for +/-, `CategoryIcon` for icon data).
+
+9. Cubit/State Naming
+   - Cubit: `<ModuleName>Cubit` (e.g., `ExpenseCategoryCubit`).
+   - State: `<ModuleName>State` or descriptive name (e.g., `ExpenseClass`).
+   - State fields: `camelCase`, nullable by default (e.g., `List<Map<String, dynamic>>? RecurringData`).
+   - Model classes in state file: Descriptive, `PascalCase` (e.g., `ExpenseWithCategory`, `CategorySpend`).
+
+10. Error Handling
+    - Error logging methods: Use `logError` or similar in `lib/core/logger/logger.dart` (e.g., `Logger.logError(e, stack)`).
+    - Error variables: `camelCase` (e.g., `e`, `stack` for exceptions).
+
+11. Dependencies
+    - Use consistent package names in imports (e.g., `flutter_bloc`, `flutter_screenutil`, `auto_size_text`).
+    - Add to `pubspec.yaml`:
+      ```yaml
+      dependencies:
+        flutter:
+          sdk: flutter
+        flutter_bloc: ^9.1.1
+        flutter_screenutil: ^5.9.3
+        auto_size_text: ^3.0.0
+        sqflite: ^2.4.2
+        d_chart: ^3.0.0
+      ```
+
+12. Cursor Command
+    - For "create a widget <WidgetName>":
+      - Generate in `lib/features/<ModuleName>/presentation/{screens,components}/`
+      - Use `Component` for reusable widgets, `Screen` for full screens
+      - Example: `create a widget BalanceCard` → `lib/features/dashboard/presentation/components/balance_card_component.dart`
+    - For "create a cubit <ModuleName>":
+      - Generate in `lib/features/<ModuleName>/data/cubit/`
+      - Example: `create a cubit Profile` → `profile_cubit.dart`, `profile_state.dart`
+    - Follow naming conventions above
+
+13. Notes
+    - Ensure names align with folder structure (e.g., widgets in `presentation/`, cubits in `data/cubit/`).
+    - Avoid ambiguous names; prefer clarity (e.g., `categoryName` over `name`).
+    - Support flavors (android/app/src/{sit,uat,prod}) in naming if needed.
+    - Clarify ambiguous requirements before generating code.

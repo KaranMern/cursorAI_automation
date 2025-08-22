@@ -1,0 +1,148 @@
+---
+alwaysApply: true
+---
+# Rule: Custom Flutter Alice Configuration
+
+# Purpose: Define conventions for Alice network inspection setup in Flutter projects, aligned with provided DioProvider sample.
+
+alwaysApply: true
+
+# Relevant Folder Structure
+
+# - lib/core/network/alice.dart (Alice configuration)
+
+# - lib/main.dart (Alice initialization)
+
+# Alice Rules
+
+1. General
+
+   - Use `flutter_alice` package for network inspection with Dio.
+   - Place Alice configuration in: lib/core/network/alice.dart
+   - Use snake_case for file names (e.g., alice.dart).
+   - Use PascalCase for class names (e.g., DioProvider).
+   - Use relative imports with package prefix (e.g., import 'package:myapp/core/network/alice.dart').
+   - Check for existing files to avoid duplication.
+   - Clarify ambiguous requirements before generating code.
+
+2. DioProvider Class
+
+   - Define class named `DioProvider` in lib/core/network/alice.dart.
+   - Use singleton pattern with private constructor (`_internal`).
+   - Include static instance: `DioProvider _singleton`.
+   - Include static `PrettyDioLogger` instance named `_logger` with:
+     - requestHeader: true
+     - requestBody: true
+     - responseBody: true
+     - responseHeader: true
+     - error: true
+     - compact: false
+     - maxWidth: 500
+     - request: true
+   - Include `Alice` instance with:
+     - showNotification: true
+     - showInspectorOnShake: true
+     - notificationIcon: Headers.jsonContentType
+     - darkTheme: true
+   - Include `Dio` instance (`dio`) initialized in `initAlice`.
+   - Include `initAlice` method to configure Alice and Dio interceptors.
+   - Include getter for `navigatorKey` from Alice.
+   - Example:
+
+     ```dart
+     import 'package:dio/dio.dart';
+     import 'package:flutter_alice/alice.dart';
+     import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+     
+     class DioProvider {
+       static final DioProvider _singleton = DioProvider._internal();
+       static final PrettyDioLogger _logger = PrettyDioLogger(
+         requestHeader: true,
+         requestBody: true,
+         responseBody: true,
+         responseHeader: true,
+         error: true,
+         compact: false,
+         maxWidth: 500,
+         request: true,
+       );
+       factory DioProvider() => _singleton;
+     
+       DioProvider._internal();
+     
+       late Dio dio;
+       Alice alice = Alice(
+         showNotification: true,
+         showInspectorOnShake: true,
+         notificationIcon: Headers.jsonContentType,
+         darkTheme: true,
+       );
+     
+       void initAlice(Alice aliceInstance) {
+         alice = aliceInstance;
+         dio = Dio();
+         dio.interceptors.add(alice.getDioInterceptor());
+         dio.interceptors.add(_logger);
+       }
+     
+       GlobalKey<NavigatorState>? get navigatorKey => alice.getNavigatorKey();
+     }
+     final dioProvider = DioProvider();
+     ```
+
+3. Main Integration
+
+   - In lib/main.dart, initialize Alice before `runApp`.
+   - Create `Alice` instance with:
+     - showNotification: true
+     - showInspectorOnShake: true
+   - Call `dioProvider.initAlice(alice)` to initialize Dio with Alice.
+   - Use `dioProvider.navigatorKey` in `MaterialApp` for navigation.
+   - Example:
+
+     ```dart
+     Future<void> main() async {
+       WidgetsFlutterBinding.ensureInitialized();
+       final alice = Alice(showNotification: true, showInspectorOnShake: true);
+       dioProvider.initAlice(alice);
+       await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+       runApp(OverlaySupport.global(child: MyApp()));
+     }
+     class MyApp extends StatelessWidget {
+       MyApp({super.key});
+       @override
+       Widget build(BuildContext context) {
+         return MaterialApp(
+           navigatorKey: dioProvider.navigatorKey,
+           // other properties
+         );
+       }
+     }
+     ```
+
+4. Dependencies
+
+   - Add to pubspec.yaml:
+
+     ```yaml
+     dependencies:
+       flutter:
+         sdk: flutter
+       dio: ^5.9.0
+       fflutter_alice: ^2.0.1
+       pretty_dio_logger: ^1.4.0
+     ```
+
+5. Cursor Command
+
+   - For "create alice config":
+     - Generate lib/core/network/alice.dart with DioProvider class as shown above.
+   - For "update main with alice":
+     - Update lib/main.dart to initialize Alice and integrate with MaterialApp.
+
+6. Notes
+
+   - Ensure Alice configuration is in lib/core/network/alice.dart.
+   - Verify DioProvider singleton is accessible via `dioProvider`.
+   - Support flavors (android/app/src/{sit,uat,prod}) if flavor-specific Alice configs are needed.
+   - Clarify ambiguous requirements before generating code.
